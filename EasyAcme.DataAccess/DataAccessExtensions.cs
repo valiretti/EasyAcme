@@ -7,12 +7,12 @@ namespace EasyAcme.DataAccess
 {
     public static class DataAccessExtensions
     {
-        public static void AddDbContext(IServiceCollection serviceCollection)
+        public static void AddDbContext(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddDbContext<ApplicationContext>(options => options.UseSqlite(GetSQLiteConnectionString()));
         }
 
-        public static void AddDefaultIdentity(IServiceCollection serviceCollection)
+        public static void AddDefaultIdentity(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddDefaultIdentity<IdentityUser>(options => 
                 {

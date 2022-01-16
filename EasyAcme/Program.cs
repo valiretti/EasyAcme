@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-DataAccessExtensions.AddDbContext(builder.Services);
+builder.Services.AddDbContext();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-DataAccessExtensions.AddDefaultIdentity(builder.Services);
+builder.Services.AddDefaultIdentity();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
