@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazorise.Bootstrap5" Version="0.9.5.5" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="0.9.5.5" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.0" />
@@ -18,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EasyAcme.DataAccess\EasyAcme.DataAccess.csproj" />
+    <ProjectReference Include="..\EasyAcme.Logic\EasyAcme.Logic.csproj" />
+    <ProjectReference Include="..\EasyAcme.Model\EasyAcme.Model.csproj" />
   </ItemGroup>
 
 </Project>

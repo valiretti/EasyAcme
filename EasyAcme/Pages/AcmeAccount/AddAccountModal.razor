@@ -1,0 +1,255 @@
+﻿@using EasyAcme.Model
+@using Certes
+@using System.ComponentModel.DataAnnotations
+@using Certes.Acme
+
+<Modal @bind-Visible="@ShowModal">
+    <ModalContent Centered="true" Size="ModalSize.Large">
+        <ModalHeader>
+            <ModalTitle>Create ACME Account</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <EditForm EditContext="@_editContext">
+                <DataAnnotationsValidator />
+                <Validations @ref="_validations" Mode="ValidationMode.Auto" EditContext="@_editContext" ValidateOnLoad="false">
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3">ACME server identifier</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is9">
+                            <Select TValue="AcmeServerIdentifier" SelectedValue="@_serverIdentifier" SelectedValueChanged="@OnServerIdentifierChangedAsync">
+                                <SelectGroup Label="Well known servers">
+                                    <SelectItem Value="@AcmeServerIdentifier.LetsEncryptV2">@AcmeServerIdentifier.LetsEncryptV2</SelectItem>
+                                    <SelectItem Value="@AcmeServerIdentifier.LetsEncryptStagingV2">@AcmeServerIdentifier.LetsEncryptStagingV2</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup Label="Other servers">
+                                    <SelectItem Value="@AcmeServerIdentifier.Custom">@AcmeServerIdentifier.Custom</SelectItem>
+                                </SelectGroup>
+                            </Select>
+                        </FieldBody>
+                    </Field>
+
+                    @if (_serverIdentifier == AcmeServerIdentifier.Custom)
+                    {
+                        <Validation>
+                            <Field Horizontal>
+                                <FieldLabel ColumnSize="ColumnSize.Is3" />
+                                <FieldBody ColumnSize="ColumnSize.Is9">
+                                    <TextEdit Placeholder="Enter URL" @bind-Text="@_accountModel.ServerIdentifier">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    }
+
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3">Display Name</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is9">
+                            <TextEdit Placeholder="Enter Display Name" @bind-Text="_accountModel.DisplayName" />
+                        </FieldBody>
+                    </Field>
+
+                    <Validation @ref="_emailValidation" Validator="@ValidateEmail">
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.Is3">Account email(s)</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is9">
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <TextEdit Placeholder="Enter email" @bind-Text="_email" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Primary" Clicked="@OnEmailAdded">Add</Button>
+                                    </Addon>
+                                    <ValidationError>Enter valid email!</ValidationError>
+                                </Addons>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" />
+                        <FieldBody ColumnSize="ColumnSize.Is9">
+                            <ListGroup>
+                                @foreach (var email in _accountModel.AccountEmails)
+                                {
+                                    <ListGroupItem Flex="Flex.JustifyContent.Between.AlignItems.Center">
+                                        @email
+                                        <Badge CloseClicked="() => OnEmailRemoved(email)" Color="Color.Danger" Pill="true"></Badge>
+                                    </ListGroupItem>
+                                }
+                            </ListGroup>
+                        </FieldBody>
+                    </Field>
+                    <Alert Color="Color.Danger" @bind-Visible="@_alertVisible">
+                        <AlertDescription>ACME Account must have at least one email address.</AlertDescription>
+                    </Alert>
+
+                    <Divider DividerType="DividerType.TextContent" Text="ACME External Account Binding (optional)" />
+                    <Fields>
+                        <Field>
+                            <FieldLabel>EAB Key identifier</FieldLabel>
+                            <TextEdit Placeholder="Enter key identifier" @bind-Text="_accountModel.EabKeyIdentifier" />
+                        </Field>
+                        <Field>
+                            <FieldLabel>EAB Key</FieldLabel>
+                            <TextEdit Placeholder="Enter key" @bind-Text="_accountModel.EabKey" />
+                        </Field>
+                        <Field>
+                            <FieldLabel>EAB Key Algorithm</FieldLabel>
+                            <Select @bind-SelectedValue="@_accountModel.EabKeyAlgorithm">
+                                <SelectItem Value="(KeyAlgorithm?)null">Enter algorithm</SelectItem>
+                                @foreach (var e in Enum.GetValues(typeof(KeyAlgorithm)))
+                                {
+                                    <SelectItem Value="e.ToString()">@e.ToString()</SelectItem>
+                                }
+                            </Select>
+                        </Field>
+                    </Fields>
+                    <Divider DividerType="DividerType.Solid" />
+
+                    <Validation>
+                        <Check TValue="bool" @bind-Checked="_accountModel.AgreementConfirmation">
+                            <ChildContent>
+                                I agree to 
+                                @if (_termsOfUse != null)
+                                {
+                                    <a href="@_termsOfUse.AbsoluteUri" target="_blank">@TermsOfUse</a>
+                                }
+                                else
+                                {
+                                   @TermsOfUse
+                                }
+                            </ChildContent>
+                            <Feedback>
+                                <ValidationError />
+                            </Feedback>
+                        </Check>
+                    </Validation>
+
+                </Validations>
+            </EditForm>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@CloseModal">Close</Button>
+            <Button Color="Color.Primary" Clicked="@AddAccountAsync" Loading="@_isSaveLoading">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter]
+    public Func<CreateAcmeAccountModel, Task>? OnSaveChangesAsync { get; set; }
+
+    [Parameter]
+    public Func<string, Task<Uri?>>? GetTermsOfUseAsync { get; set; }
+
+    [Parameter]
+    public bool ShowModal { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ShowModalChanged { get; set; }
+
+    private EditContext? _editContext;
+    private Validations? _validations;
+    private Validation _emailValidation = null!;
+    private CreateAcmeAccountModel _accountModel = new();
+    private string? _email = null;
+    private bool _alertVisible;
+    private bool _isSaveLoading;
+    private AcmeServerIdentifier _serverIdentifier = AcmeServerIdentifier.LetsEncryptV2;
+    private Uri? _termsOfUse;
+    const string TermsOfUse = "Terms of Use";
+
+    protected override void OnInitialized()
+    {
+        _editContext = new(_accountModel);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!ShowModal) return;
+        _accountModel = new CreateAcmeAccountModel();
+        _editContext = new(_accountModel);
+        _email = null;
+        _alertVisible = false;
+        _serverIdentifier = AcmeServerIdentifier.LetsEncryptV2;
+        _accountModel.ServerIdentifier = WellKnownServers.LetsEncryptV2.AbsoluteUri;
+        await LoadTermOfUseAsync();
+    }
+
+    private void OnEmailAdded()
+    {
+        if (!string.IsNullOrEmpty(_email) && _emailValidation.Status == ValidationStatus.Success)
+        {
+            _accountModel.AccountEmails.Add(_email);
+            _email = null;
+            _emailValidation.Clear();
+            ValidateAccountEmail();
+        }
+    }
+
+    private void OnEmailRemoved(string email)
+    {
+        if (!string.IsNullOrEmpty(email))
+            _accountModel.AccountEmails.Remove(email);
+
+        ValidateAccountEmail();
+    }
+
+    void ValidateEmail(ValidatorEventArgs e)
+    {
+        var email = e.Value?.ToString();
+        e.Status = string.IsNullOrEmpty(email)
+            ? ValidationStatus.None
+            : new EmailAddressAttribute().IsValid(email)
+                ? ValidationStatus.Success
+                : ValidationStatus.Error;
+    }
+
+    private void ValidateAccountEmail()
+    {
+        _alertVisible = _accountModel.AccountEmails.Count == 0;
+    }
+
+    private async Task OnServerIdentifierChangedAsync(AcmeServerIdentifier value)
+    {
+        _serverIdentifier = value;
+        _accountModel.ServerIdentifier = value switch
+        {
+            AcmeServerIdentifier.Custom => null!,
+            AcmeServerIdentifier.LetsEncryptV2 => WellKnownServers.LetsEncryptV2.AbsoluteUri,
+            AcmeServerIdentifier.LetsEncryptStagingV2 => WellKnownServers.LetsEncryptStagingV2.AbsoluteUri,
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+
+        };
+
+        await LoadTermOfUseAsync();
+    }
+
+    private async Task LoadTermOfUseAsync()
+    {
+        _termsOfUse = GetTermsOfUseAsync != null ? await GetTermsOfUseAsync(_accountModel.ServerIdentifier) : null;
+    }
+
+    private async Task CloseModal()
+    {
+        await ShowModalChanged.InvokeAsync(false);
+    }
+
+    private async Task AddAccountAsync()
+    {
+        _isSaveLoading = true;
+        ValidateAccountEmail();
+        if (_validations != null && await _validations.ValidateAll() && !_alertVisible)
+        {
+            if (OnSaveChangesAsync != null)
+                await OnSaveChangesAsync(_accountModel);
+
+            await ShowModalChanged.InvokeAsync(false);
+        }
+
+        _isSaveLoading = false;
+    }
+}

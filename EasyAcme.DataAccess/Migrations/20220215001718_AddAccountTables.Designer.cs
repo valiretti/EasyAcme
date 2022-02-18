@@ -3,6 +3,7 @@ using System;
 using EasyAcme.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EasyAcme.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20220215001718_AddAccountTables")]
+    partial class AddAccountTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
@@ -36,10 +38,6 @@ namespace EasyAcme.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EabKeyIdentifier")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PemAccountKey")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ServerIdentifier")

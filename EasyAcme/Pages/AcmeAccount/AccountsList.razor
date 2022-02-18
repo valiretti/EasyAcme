@@ -1,0 +1,101 @@
+﻿@page "/accounts"
+
+@using EasyAcme.Model
+@using EasyAcme.Logic
+@inject IAcmeAccountService _acmeAccountService;
+@inject IMessageService _messageService;
+
+<PageTitle>Accounts</PageTitle>
+
+<h1>ACME Accounts</h1>
+<Button Color="Color.Primary" Clicked="@OnAddNewAccount" Outline Style="margin-bottom: 10px;">New ACME Account</Button>
+<AddAccountModal @bind-ShowModal="_showModal" OnSaveChangesAsync="OnSaveChangesAsync" GetTermsOfUseAsync="GetTermsOfUseAsync" />
+@if (_acmeAccounts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <Table>
+        <TableHeader ThemeContrast="ThemeContrast.Light">
+            <TableRow>
+                <TableHeaderCell>#</TableHeaderCell>
+                <TableHeaderCell>Display name</TableHeaderCell>
+                <TableHeaderCell>ACME server identifier</TableHeaderCell>
+                <TableHeaderCell>Associated email(s)</TableHeaderCell>
+                <TableHeaderCell />
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            @for (var i = 0; i < _acmeAccounts.Count; i++)
+            {
+                var index = i;
+                <TableRow @key="@index.ToString()">
+                    <TableRowHeader>@(index + 1)</TableRowHeader>
+                    <TableRowCell>@_acmeAccounts[index].DisplayName</TableRowCell>
+                    <TableRowCell>@_acmeAccounts[index].ServerIdentifier</TableRowCell>
+                    <TableRowCell>@_acmeAccounts[index].AccountEmails</TableRowCell>
+                    <TableRowCell>
+                        <Button Color="Color.Primary" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeAccounts[index].Id))" Loading="@_isDeleteLoading">Delete</Button>
+                    </TableRowCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+}
+
+@code {
+    private List<AcmeAccountViewModel>? _acmeAccounts;
+    private bool _showModal;
+    private bool _isDeleteLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountsAsync();
+    }
+
+    private void OnAddNewAccount()
+    {
+        _showModal = true;
+    }
+
+    private async Task ShowDeleteConfirmMessageAsync(int accountId)
+    {
+        _isDeleteLoading = true;
+        if ( await _messageService.Confirm("Are you sure you want to deactivate and delete ACME account?", "Confirmation" ) )
+        {
+            if (!await _acmeAccountService.DeactivateAndDeleteAcmeAccount(accountId))
+            {
+                await _messageService.Error("An error has occurred during deactivating the ACME account.");
+            }
+            else
+            {
+                await LoadAccountsAsync();
+            }
+        }
+
+        _isDeleteLoading = false;
+    }
+
+    private async Task OnSaveChangesAsync(CreateAcmeAccountModel a)
+    {
+        if (!await _acmeAccountService.CreateAcmeAccountsAsync(a))
+        {
+            await _messageService.Error("An error has occurred during creation the ACME account.");
+        }
+        else
+        {
+            await LoadAccountsAsync();
+        }
+    }
+
+    private Task<Uri?> GetTermsOfUseAsync(string directoryUrl)
+    {
+        return _acmeAccountService.GetTermsOfServiceAsync(directoryUrl);
+    }
+
+    private async Task LoadAccountsAsync()
+    {
+        _acmeAccounts = await _acmeAccountService.GetAcmeAccountsAsync();
+    }
+}

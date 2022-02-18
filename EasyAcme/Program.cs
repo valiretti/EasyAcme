@@ -1,7 +1,11 @@
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 using EasyAcme.Areas.Identity;
 using EasyAcme.Data;
 using EasyAcme.DataAccess;
 using EasyAcme.HostedServices;
+using EasyAcme.Logic;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,10 +17,17 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddBlazorise(o =>
+    {
+        o.ChangeTextOnKeyPress = true;
+    })
+    .AddBootstrap5Providers()
+    .AddFontAwesomeIcons();
 
 builder.Services.AddHostedService<UserInitializationHostedService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+builder.Services.AddScoped<IAcmeAccountService, AcmeAccountService>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();

@@ -1,12 +1,25 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using EasyAcme.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace EasyAcme.DataAccess
+namespace EasyAcme.DataAccess;
+
+public class ApplicationContext : IdentityDbContext
 {
-    public class ApplicationContext : IdentityDbContext
+    public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
     {
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
-        {
-        }
     }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<AcmeAccountEmail>()
+            .HasOne(a => a.AcmeAccount)
+            .WithMany(e => e.AccountEmails)
+            .HasForeignKey(e => e.AcmeAccountId);
+
+        base.OnModelCreating(builder);
+    }
+
+    public DbSet<AcmeAccount> AcmeAccounts { get; set; } = null!;
+    public DbSet<AcmeAccountEmail> AcmeAccountEmails { get; set; } = null!;
 }

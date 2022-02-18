@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EasyAcme.DataAccess\EasyAcme.DataAccess.csproj" />
+    <ProjectReference Include="..\EasyAcme.Model\EasyAcme.Model.csproj" />
+  </ItemGroup>
+
 </Project>
