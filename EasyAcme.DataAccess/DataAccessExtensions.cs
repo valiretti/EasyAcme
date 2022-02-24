@@ -9,7 +9,7 @@ namespace EasyAcme.DataAccess
     {
         public static void AddDbContext(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddDbContext<ApplicationContext>(options => options.UseSqlite(GetSQLiteConnectionString()));
+            serviceCollection.AddDbContext<ApplicationContext>(options => options.UseSqlite(GetSqLiteConnectionString()));
         }
 
         public static void AddDefaultIdentity(this IServiceCollection serviceCollection)
@@ -22,7 +22,7 @@ namespace EasyAcme.DataAccess
                 }).AddEntityFrameworkStores<ApplicationContext>();
         }
 
-        private static string GetSQLiteConnectionString()
+        private static string GetSqLiteConnectionString()
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Path.Join(Environment.GetFolderPath(folder), "EasyAcme");

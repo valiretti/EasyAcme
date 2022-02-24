@@ -7,16 +7,21 @@
 
 <PageTitle>Accounts</PageTitle>
 
-<h1>ACME Accounts</h1>
-<Button Color="Color.Primary" Clicked="@OnAddNewAccount" Outline Style="margin-bottom: 10px;">New ACME Account</Button>
+<h1 class="text-center">ACME Accounts</h1>
 <AddAccountModal @bind-ShowModal="_showModal" OnSaveChangesAsync="OnSaveChangesAsync" GetTermsOfUseAsync="GetTermsOfUseAsync" />
 @if (_acmeAccounts == null)
 {
-    <p><em>Loading...</em></p>
+    <SpinKit Type="SpinKitType.Wave" Centered />
 }
 else
 {
-    <Table>
+    <div class="d-flex flex-row-reverse">
+        <Button Class="mb-3 me-3" Color="Color.Primary" Clicked="@OnAddNewAccount">
+            New Account
+        </Button>
+    </div>
+    
+    <Table TextAlignment="TextAlignment.Center" VerticalAlignment="VerticalAlignment.Middle" Hoverable>
         <TableHeader ThemeContrast="ThemeContrast.Light">
             <TableRow>
                 <TableHeaderCell>#</TableHeaderCell>
@@ -36,7 +41,7 @@ else
                     <TableRowCell>@_acmeAccounts[index].ServerIdentifier</TableRowCell>
                     <TableRowCell>@_acmeAccounts[index].AccountEmails</TableRowCell>
                     <TableRowCell>
-                        <Button Color="Color.Primary" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeAccounts[index].Id))" Loading="@_isDeleteLoading">Delete</Button>
+                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeAccounts[index].Id))">Delete</Button>
                     </TableRowCell>
                 </TableRow>
             }
@@ -47,7 +52,6 @@ else
 @code {
     private List<AcmeAccountViewModel>? _acmeAccounts;
     private bool _showModal;
-    private bool _isDeleteLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,7 +65,6 @@ else
 
     private async Task ShowDeleteConfirmMessageAsync(int accountId)
     {
-        _isDeleteLoading = true;
         if ( await _messageService.Confirm("Are you sure you want to deactivate and delete ACME account?", "Confirmation" ) )
         {
             if (!await _acmeAccountService.DeactivateAndDeleteAcmeAccount(accountId))
@@ -73,8 +76,6 @@ else
                 await LoadAccountsAsync();
             }
         }
-
-        _isDeleteLoading = false;
     }
 
     private async Task OnSaveChangesAsync(CreateAcmeAccountModel a)

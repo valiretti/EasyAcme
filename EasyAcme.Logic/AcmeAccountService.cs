@@ -43,7 +43,7 @@ public class AcmeAccountService : IAcmeAccountService
         }).ToListAsync();
     }
 
-    public async Task<bool> CreateAcmeAccountsAsync(CreateAcmeAccountModel acmeAccountModel)
+    public Task<bool> CreateAcmeAccountsAsync(CreateAcmeAccountModel acmeAccountModel)
     {
         ArgumentNullException.ThrowIfNull(acmeAccountModel);
         if (acmeAccountModel.AccountEmails == null || acmeAccountModel.AccountEmails.Count < 1)
@@ -51,49 +51,55 @@ public class AcmeAccountService : IAcmeAccountService
             throw new ArgumentException("ACME Account must have at least one email address.");
         }
 
-        var context = new AcmeContext(new Uri(acmeAccountModel.ServerIdentifier));
-        var pem = context.AccountKey.ToPem();
-        var contact = acmeAccountModel.AccountEmails.Select(e => $"mailto:{e}").ToList();
-        try
+        return ExecuteAsync();
+
+        async Task<bool> ExecuteAsync()
         {
-            if (!string.IsNullOrEmpty(acmeAccountModel.EabKeyIdentifier) && !string.IsNullOrEmpty(acmeAccountModel.EabKey))
+            var context = new AcmeContext(new Uri(acmeAccountModel.ServerIdentifier));
+            var pem = context.AccountKey.ToPem();
+            var contact = acmeAccountModel.AccountEmails.Select(e => $"mailto:{e}").ToList();
+            try
             {
-                await context.NewAccount(contact, acmeAccountModel.AgreementConfirmation, acmeAccountModel.EabKeyIdentifier, acmeAccountModel.EabKey, acmeAccountModel.EabKeyAlgorithm?.ToString());
+                if (!string.IsNullOrEmpty(acmeAccountModel.EabKeyIdentifier) && !string.IsNullOrEmpty(acmeAccountModel.EabKey))
+                {
+                    await context.NewAccount(contact, acmeAccountModel.AgreementConfirmation, acmeAccountModel.EabKeyIdentifier,
+                        acmeAccountModel.EabKey, acmeAccountModel.EabKeyAlgorithm?.ToString());
+                }
+                else
+                {
+                    await context.NewAccount(contact, acmeAccountModel.AgreementConfirmation);
+                }
             }
-            else
+            catch (Exception e)
             {
-                await context.NewAccount(contact, acmeAccountModel.AgreementConfirmation);
+                _logger.LogError(e, "An error has occurred during creation the ACME account.");
+                return false;
             }
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "An error has occurred during creation the ACME account.");
-            return false;
-        }
 
-        var acmeAccount = new AcmeAccount
-        {
-            DisplayName = acmeAccountModel.DisplayName,
-            PemAccountKey = pem,
-            AgreementConfirmation = acmeAccountModel.AgreementConfirmation,
-            ServerIdentifier = acmeAccountModel.ServerIdentifier,
-            EabKey = acmeAccountModel.EabKey,
-            EabKeyIdentifier = acmeAccountModel.EabKeyIdentifier,
-            EabKeyAlgorithm = acmeAccountModel.EabKeyAlgorithm.ToString(),
-            AccountEmails = new List<AcmeAccountEmail>()
-        };
-
-        foreach (var accountEmail in acmeAccountModel.AccountEmails)
-        {
-            acmeAccount.AccountEmails.Add(new AcmeAccountEmail
+            var acmeAccount = new AcmeAccount
             {
-                Email = accountEmail
-            });
-        }
+                DisplayName = acmeAccountModel.DisplayName,
+                PemAccountKey = pem,
+                AgreementConfirmation = acmeAccountModel.AgreementConfirmation,
+                ServerIdentifier = acmeAccountModel.ServerIdentifier,
+                EabKey = acmeAccountModel.EabKey,
+                EabKeyIdentifier = acmeAccountModel.EabKeyIdentifier,
+                EabKeyAlgorithm = acmeAccountModel.EabKeyAlgorithm,
+                AccountEmails = new List<AcmeAccountEmail>()
+            };
 
-        await _applicationContext.AcmeAccounts.AddAsync(acmeAccount);
-        await _applicationContext.SaveChangesAsync();
-        return true;
+            foreach (var accountEmail in acmeAccountModel.AccountEmails)
+            {
+                acmeAccount.AccountEmails.Add(new AcmeAccountEmail
+                {
+                    Email = accountEmail
+                });
+            }
+
+            await _applicationContext.AcmeAccounts.AddAsync(acmeAccount);
+            await _applicationContext.SaveChangesAsync();
+            return true;
+        }
     }
 
     public async Task<bool> DeactivateAndDeleteAcmeAccount(int accountId)
@@ -104,9 +110,9 @@ public class AcmeAccountService : IAcmeAccountService
 
         var accountKey = KeyFactory.FromPem(account.PemAccountKey);
         var acme = new AcmeContext(new Uri(account.ServerIdentifier), accountKey);
-        var acmeAccount = await acme.Account();
         try
         {
+            var acmeAccount = await acme.Account();
             await acmeAccount.Deactivate();
         }
         catch (Exception e)
@@ -117,7 +123,6 @@ public class AcmeAccountService : IAcmeAccountService
 
         _applicationContext.AcmeAccounts.Remove(account);
         await _applicationContext.SaveChangesAsync();
-
         return true;
     }
 }

@@ -2,7 +2,6 @@ using Blazorise;
 using Blazorise.Bootstrap5;
 using Blazorise.Icons.FontAwesome;
 using EasyAcme.Areas.Identity;
-using EasyAcme.Data;
 using EasyAcme.DataAccess;
 using EasyAcme.HostedServices;
 using EasyAcme.Logic;
@@ -28,7 +27,6 @@ builder.Services.AddHostedService<UserInitializationHostedService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddScoped<IAcmeAccountService, AcmeAccountService>();
-builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
 

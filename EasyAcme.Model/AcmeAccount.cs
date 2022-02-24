@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Certes;
 
 namespace EasyAcme.Model;
 
@@ -13,7 +14,7 @@ public class AcmeAccount
     public bool AgreementConfirmation { get; set; }
     public string? EabKeyIdentifier { get; set; }
     public string? EabKey { get; set; }
-    public string? EabKeyAlgorithm { get; set; }
+    public KeyAlgorithm? EabKeyAlgorithm { get; set; }
 
     public ICollection<AcmeAccountEmail> AccountEmails { get; set; } = null!;
 }

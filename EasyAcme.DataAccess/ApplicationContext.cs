@@ -17,6 +17,10 @@ public class ApplicationContext : IdentityDbContext
             .WithMany(e => e.AccountEmails)
             .HasForeignKey(e => e.AcmeAccountId);
 
+        builder.Entity<AcmeAccount>()
+            .Property(a => a.EabKeyAlgorithm)
+            .HasConversion<string?>();
+
         base.OnModelCreating(builder);
     }
 

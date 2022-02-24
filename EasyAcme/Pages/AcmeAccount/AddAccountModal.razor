@@ -88,18 +88,28 @@
 
                     <Divider DividerType="DividerType.TextContent" Text="ACME External Account Binding (optional)" />
                     <Fields>
-                        <Field>
-                            <FieldLabel>EAB Key identifier</FieldLabel>
-                            <TextEdit Placeholder="Enter key identifier" @bind-Text="_accountModel.EabKeyIdentifier" />
-                        </Field>
-                        <Field>
-                            <FieldLabel>EAB Key</FieldLabel>
-                            <TextEdit Placeholder="Enter key" @bind-Text="_accountModel.EabKey" />
-                        </Field>
+                        <Validation @ref="_eabKeyIdentifierValidation" Validator="@ValidateKeyIdentifier">
+                            <Field>
+                                <FieldLabel>EAB Key identifier</FieldLabel>
+                                <TextEdit Placeholder="Enter key Identifier" @bind-Text="_accountModel.EabKeyIdentifier">
+                                    <ValidationError>Enter EAB Key Identifier or clear EAB Key!</ValidationError>
+                                </TextEdit>
+                            </Field>
+                        </Validation>
+
+                        <Validation @ref="_eabKeyValidation" Validator="@ValidateKey">
+                            <Field>
+                                <FieldLabel>EAB Key</FieldLabel>
+                                <TextEdit Placeholder="Enter key" @bind-Text="_accountModel.EabKey">
+                                    <ValidationError>Enter EAB Key or clear EAB Key Identifier!</ValidationError>
+                                </TextEdit>
+                            </Field>
+                        </Validation>
+
                         <Field>
                             <FieldLabel>EAB Key Algorithm</FieldLabel>
-                            <Select @bind-SelectedValue="@_accountModel.EabKeyAlgorithm">
-                                <SelectItem Value="(KeyAlgorithm?)null">Enter algorithm</SelectItem>
+                            <Select @bind-SelectedValue="@_accountModel.EabKeyAlgorithm" Disabled="@_eabKeyAlgorithmDisabled">
+                                <SelectItem Value="(KeyAlgorithm?) null">Enter algorithm</SelectItem>
                                 @foreach (var e in Enum.GetValues(typeof(KeyAlgorithm)))
                                 {
                                     <SelectItem Value="e.ToString()">@e.ToString()</SelectItem>
@@ -112,14 +122,14 @@
                     <Validation>
                         <Check TValue="bool" @bind-Checked="_accountModel.AgreementConfirmation">
                             <ChildContent>
-                                I agree to 
+                                I agree to
                                 @if (_termsOfUse != null)
                                 {
                                     <a href="@_termsOfUse.AbsoluteUri" target="_blank">@TermsOfUse</a>
                                 }
                                 else
                                 {
-                                   @TermsOfUse
+                                    @TermsOfUse
                                 }
                             </ChildContent>
                             <Feedback>
@@ -154,6 +164,9 @@
     private EditContext? _editContext;
     private Validations? _validations;
     private Validation _emailValidation = null!;
+    private Validation _eabKeyIdentifierValidation = null!;
+    private Validation _eabKeyValidation = null!;
+    private bool _eabKeyAlgorithmDisabled = true;
     private CreateAcmeAccountModel _accountModel = new();
     private string? _email = null;
     private bool _alertVisible;
@@ -174,6 +187,7 @@
         _editContext = new(_accountModel);
         _email = null;
         _alertVisible = false;
+        _eabKeyAlgorithmDisabled = true;
         _serverIdentifier = AcmeServerIdentifier.LetsEncryptV2;
         _accountModel.ServerIdentifier = WellKnownServers.LetsEncryptV2.AbsoluteUri;
         await LoadTermOfUseAsync();
@@ -198,7 +212,7 @@
         ValidateAccountEmail();
     }
 
-    void ValidateEmail(ValidatorEventArgs e)
+    private void ValidateEmail(ValidatorEventArgs e)
     {
         var email = e.Value?.ToString();
         e.Status = string.IsNullOrEmpty(email)
@@ -206,6 +220,44 @@
             : new EmailAddressAttribute().IsValid(email)
                 ? ValidationStatus.Success
                 : ValidationStatus.Error;
+    }
+
+    private void ValidateKeyIdentifier(ValidatorEventArgs e)
+    {
+        ValidateEab(e, _accountModel.EabKey, _eabKeyValidation);
+    }
+
+    private void ValidateKey(ValidatorEventArgs e)
+    {
+        ValidateEab(e, _accountModel.EabKeyIdentifier, _eabKeyIdentifierValidation);
+    }
+
+    private void ValidateEab(ValidatorEventArgs e, string? otherValue, Validation otherValidation)
+    {
+        if (string.IsNullOrEmpty(e.Value?.ToString()))
+        {
+            if (string.IsNullOrEmpty(otherValue))
+            {
+                e.Status = ValidationStatus.None;
+                otherValidation.Clear();
+                _eabKeyAlgorithmDisabled = true;
+                _accountModel.EabKeyAlgorithm = null;
+            }
+            else
+            {
+                e.Status = ValidationStatus.Error;
+                _eabKeyAlgorithmDisabled = true;
+            }
+        }
+        else if (!string.IsNullOrEmpty(otherValue))
+        {
+            e.Status = ValidationStatus.None;
+            _eabKeyAlgorithmDisabled = false;
+        }
+        else
+        {
+            otherValidation.Validate();
+        }
     }
 
     private void ValidateAccountEmail()
