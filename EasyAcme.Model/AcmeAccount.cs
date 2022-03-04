@@ -17,4 +17,5 @@ public class AcmeAccount
     public KeyAlgorithm? EabKeyAlgorithm { get; set; }
 
     public ICollection<AcmeAccountEmail> AccountEmails { get; set; } = null!;
+    public ICollection<AcmeOrder> AcmeOrders { get; set; } = null!;
 }
