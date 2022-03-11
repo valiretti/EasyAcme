@@ -8,9 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazorise.Bootstrap5" Version="0.9.5.6" />
-    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="0.9.5.6" />
-    <PackageReference Include="Blazorise.SpinKit" Version="0.9.5.6" />
+    <PackageReference Include="Blazorise.Bootstrap5" Version="1.0.0" />
+    <PackageReference Include="Blazorise.Components" Version="1.0.0" />
+    <PackageReference Include="Blazorise.FluentValidation" Version="0.9.5.3" />
+    <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.0" />
+    <PackageReference Include="Blazorise.SpinKit" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.2">
@@ -26,6 +28,11 @@
     <ProjectReference Include="..\EasyAcme.DataAccess\EasyAcme.DataAccess.csproj" />
     <ProjectReference Include="..\EasyAcme.Logic\EasyAcme.Logic.csproj" />
     <ProjectReference Include="..\EasyAcme.Model\EasyAcme.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+    <Folder Include="Validators\" />
   </ItemGroup>
 
 </Project>

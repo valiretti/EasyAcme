@@ -1,0 +1,100 @@
+﻿@page "/orders"
+@using EasyAcme.Model.ViewModels
+@using EasyAcme.Logic
+
+@inject IMessageService _messageService;
+@inject IAcmeOrderService _acmeOrderService;
+
+<PageTitle>Orders</PageTitle>
+
+<h1 class="text-center">ACME Orders</h1>
+<AddOrderModal @bind-ShowModal="_showModal" OnSaveChangesAsync="OnSaveChangesAsync" />
+
+@if (_acmeOrders == null)
+{
+    <SpinKit Type="SpinKitType.Wave" Centered />
+}
+else
+{
+    <div class="d-flex flex-row-reverse">
+        <Button Class="mb-3 me-3" Color="Color.Primary" Clicked="@OnAddNewOrder">
+            New Order
+        </Button>
+    </div>
+    
+    <Table TextAlignment="TextAlignment.Center" VerticalAlignment="VerticalAlignment.Middle" Hoverable>
+        <TableHeader ThemeContrast="ThemeContrast.Light">
+            <TableRow>
+                <TableHeaderCell>#</TableHeaderCell>
+                <TableHeaderCell>Common Name</TableHeaderCell>
+                <TableHeaderCell>Status</TableHeaderCell>
+                <TableHeaderCell>Certificate From</TableHeaderCell>
+                <TableHeaderCell>Certificate To</TableHeaderCell>
+                <TableHeaderCell />
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            @for (var i = 0; i < _acmeOrders.Count; i++)
+            {
+                var index = i;
+                <TableRow @key="@index.ToString()">
+                    <TableRowHeader>@(index + 1)</TableRowHeader>
+                    <TableRowCell>@_acmeOrders[index].CommonName</TableRowCell>
+                    <TableRowCell>@_acmeOrders[index].Status</TableRowCell>
+                    <TableRowCell>@_acmeOrders[index].CertificateFrom</TableRowCell>
+                    <TableRowCell>@_acmeOrders[index].CertificateTo</TableRowCell>
+                    <TableRowCell>
+                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeOrders[index].Id))">Delete</Button>
+                    </TableRowCell>
+                </TableRow>
+            }
+        </TableBody>
+    </Table>
+}
+
+@code {
+    private List<AcmeOrderViewModel>? _acmeOrders;
+    private bool _showModal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrdersAsync();
+    }
+
+    private void OnAddNewOrder()
+    {
+        _showModal = true;
+    }
+
+    private async Task ShowDeleteConfirmMessageAsync(int orderId)
+    {
+        if (await _messageService.Confirm("Are you sure you want to delete the order?", "Confirmation"))
+        {
+            if (!await _acmeOrderService.DeleteAcmeOrderAsync(orderId))
+            {
+                await _messageService.Error("An error has occurred during deletion the ACME order.");
+            }
+            else
+            {
+                await LoadOrdersAsync();
+            }
+        }
+    }
+
+    private async Task OnSaveChangesAsync(CreateAcmeOrderModel a)
+    {
+        if (!await _acmeOrderService.CreateAcmeOrderAsync(a))
+        {
+            await _messageService.Error("An error has occurred during creation the ACME order.");
+        }
+        else
+        {
+            await LoadOrdersAsync();
+        }
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        _acmeOrders = await _acmeOrderService.GetAcmeOrdersAsync();
+    }
+}

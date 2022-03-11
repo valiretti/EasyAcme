@@ -2,6 +2,7 @@
 @using Certes
 @using System.ComponentModel.DataAnnotations
 @using Certes.Acme
+@using EasyAcme.Model.ViewModels
 
 <Modal @bind-Visible="@ShowModal">
     <ModalContent Centered="true" Size="ModalSize.Large">
@@ -57,7 +58,7 @@
                             <FieldBody ColumnSize="ColumnSize.Is9">
                                 <Addons>
                                     <Addon AddonType="AddonType.Body">
-                                        <TextEdit Placeholder="Enter email" @bind-Text="_email" />
+                                        <TextEdit Placeholder="Enter Email" @bind-Text="_email" />
                                     </Addon>
                                     <Addon AddonType="AddonType.End">
                                         <Button Color="Color.Primary" Clicked="@OnEmailAdded">Add</Button>
@@ -91,7 +92,7 @@
                         <Validation @ref="_eabKeyIdentifierValidation" Validator="@ValidateKeyIdentifier">
                             <Field>
                                 <FieldLabel>EAB Key identifier</FieldLabel>
-                                <TextEdit Placeholder="Enter key Identifier" @bind-Text="_accountModel.EabKeyIdentifier">
+                                <TextEdit Placeholder="Enter Key Identifier" @bind-Text="_accountModel.EabKeyIdentifier">
                                     <ValidationError>Enter EAB Key Identifier or clear EAB Key!</ValidationError>
                                 </TextEdit>
                             </Field>
@@ -100,7 +101,7 @@
                         <Validation @ref="_eabKeyValidation" Validator="@ValidateKey">
                             <Field>
                                 <FieldLabel>EAB Key</FieldLabel>
-                                <TextEdit Placeholder="Enter key" @bind-Text="_accountModel.EabKey">
+                                <TextEdit Placeholder="Enter Key" @bind-Text="_accountModel.EabKey">
                                     <ValidationError>Enter EAB Key or clear EAB Key Identifier!</ValidationError>
                                 </TextEdit>
                             </Field>
@@ -109,10 +110,10 @@
                         <Field>
                             <FieldLabel>EAB Key Algorithm</FieldLabel>
                             <Select @bind-SelectedValue="@_accountModel.EabKeyAlgorithm" Disabled="@_eabKeyAlgorithmDisabled">
-                                <SelectItem Value="(KeyAlgorithm?) null">Enter algorithm</SelectItem>
-                                @foreach (var e in Enum.GetValues(typeof(KeyAlgorithm)))
+                                <SelectItem Value="(KeyAlgorithm?) null">Enter Algorithm</SelectItem>
+                                @foreach (var e in Enum.GetValues<KeyAlgorithm>())
                                 {
-                                    <SelectItem Value="e.ToString()">@e.ToString()</SelectItem>
+                                    <SelectItem Value="e">@e.ToString()</SelectItem>
                                 }
                             </Select>
                         </Field>

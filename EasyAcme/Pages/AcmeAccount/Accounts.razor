@@ -1,7 +1,7 @@
 ﻿@page "/accounts"
 
-@using EasyAcme.Model
 @using EasyAcme.Logic
+@using EasyAcme.Model.ViewModels
 @inject IAcmeAccountService _acmeAccountService;
 @inject IMessageService _messageService;
 
@@ -67,7 +67,7 @@ else
     {
         if ( await _messageService.Confirm("Are you sure you want to deactivate and delete ACME account?", "Confirmation" ) )
         {
-            if (!await _acmeAccountService.DeactivateAndDeleteAcmeAccount(accountId))
+            if (!await _acmeAccountService.DeactivateAndDeleteAcmeAccountAsync(accountId))
             {
                 await _messageService.Error("An error has occurred during deactivating the ACME account.");
             }

@@ -1,0 +1,286 @@
+﻿@using Blazorise.Components
+@using EasyAcme.Extensions
+@using EasyAcme.Logic
+@using EasyAcme.Model
+@using FluentValidation
+@using Microsoft.AspNetCore.Components
+@using EasyAcme.Model.ViewModels
+@using EasyAcme.Validators
+@using System.ComponentModel
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+
+@inject IAcmeAccountService _acmeAccountService;
+
+<Modal @bind-Visible="@ShowModal">
+    <ModalContent Centered="true" Size="ModalSize.Large" Scrollable>
+        <ModalHeader>
+            <ModalTitle>Create ACME Account</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <EditForm EditContext="@_editContext">
+                <Validations @ref="_validations" Mode="ValidationMode.Auto" EditContext="@_editContext" ValidateOnLoad="false">
+                    <Validation HandlerType="HandlerTypes.FluentValidation">
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.Is3">ACME Account</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is9">
+                                <SelectList TItem="AcmeAccountViewModel"
+                                            TValue="int?"
+                                            Data="@_acmeAccounts"
+                                            TextField="@(item => item.AccountEmails)"
+                                            ValueField="@(item => item.Id)"
+                                            @bind-SelectedValue="@_orderModel.AcmeAccountId"
+                                            DefaultItemText="Choose ACME account"
+                                            DefaultItemHidden />
+
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3">Challenge Type</FieldLabel>
+                        <FieldBody ColumnSize="ColumnSize.Is9">
+                            <Select TValue="AuthorizationChallengeType" SelectedValue="@_orderModel.AuthorizationChallengeType" SelectedValueChanged="@OnChallengeChanged">
+                                @foreach (var c in Enum.GetValues<AuthorizationChallengeType>())
+                                {
+                                    <SelectItem Value="c">@c.GetDescription()</SelectItem>
+                                }
+                            </Select>
+                        </FieldBody>
+                    </Field>
+
+                    <Validation HandlerType="HandlerTypes.FluentValidation" @ref="@_commonNameValidation">
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.Is3">Common Name</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is9">
+                                <TextEdit Placeholder="Enter Common Name" @bind-Text="@_orderModel.CommonName">
+                                    <Feedback>
+                                        <ValidationError />
+                                    </Feedback>
+                                </TextEdit>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+
+                    <Validation Validator="@ValidateDomainName" @ref="@_domainNameValidation">
+                        <Field Horizontal Class="row align-items-center">
+                            <FieldLabel ColumnSize="ColumnSize.Is3">Additional Domain Names</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.Is9" >
+                                <Addons>
+                                    <Addon AddonType="AddonType.Body">
+                                        <TextEdit Placeholder="Enter Domain Name" @bind-Text="_domainName" />
+                                    </Addon>
+                                    <Addon AddonType="AddonType.End">
+                                        <Button Color="Color.Primary" Clicked="@OnDomainNameAdded">Add</Button>
+                                    </Addon>
+                                    <ValidationError />
+                                </Addons>
+                            </FieldBody>
+                        </Field>
+                    </Validation>
+
+                    <Field Horizontal>
+                        <FieldLabel ColumnSize="ColumnSize.Is3" />
+                        <FieldBody ColumnSize="ColumnSize.Is9">
+                            <ListGroup>
+                                @foreach (var domainName in GetDomainNames())
+                                {
+                                    <ListGroupItem Flex="Flex.JustifyContent.Between.AlignItems.Center">
+                                        @domainName.HostName
+                                        <Badge CloseClicked="() => OnDomainNameRemoved(domainName.HostName)" Color="Color.Danger" Pill="true"></Badge>
+                                    </ListGroupItem>
+                                }
+                            </ListGroup>
+                        </FieldBody>
+                    </Field>
+                    
+                    <Divider DividerType="DividerType.TextContent" Text="Additional Certificate Information (optional)" />
+                    <Fields>
+                        <Field>
+                            <FieldLabel>Country Name</FieldLabel>
+                            <TextEdit Placeholder="Enter Country Name" @bind-Text="@_orderModel.CountryName" />
+                        </Field>
+                        
+                        <Field>
+                            <FieldLabel>State</FieldLabel>
+                            <TextEdit Placeholder="Enter State" @bind-Text="@_orderModel.State" />
+                        </Field>
+                        
+                        <Field>
+                            <FieldLabel>Locality</FieldLabel>
+                            <TextEdit Placeholder="Enter Locality" @bind-Text="@_orderModel.Locality" />
+                        </Field>
+                    </Fields>
+                    <Fields>
+                        <Field>
+                            <FieldLabel>Organization</FieldLabel>
+                            <TextEdit Placeholder="Enter Organization" @bind-Text="@_orderModel.Organization" />
+                        </Field>
+                        
+                        <Field>
+                            <FieldLabel>Organization Unit</FieldLabel>
+                            <TextEdit Placeholder="Enter Organization Unit" @bind-Text="@_orderModel.OrganizationUnit" />
+                        </Field>
+                    </Fields>
+                    
+                    @if (_orderModel.AuthorizationChallengeType == AuthorizationChallengeType.Dns)
+                    {
+                        <Divider DividerType="DividerType.Solid" />
+
+                        <Validation HandlerType="HandlerTypes.FluentValidation">
+                            <Field Horizontal>
+                                <FieldLabel ColumnSize="ColumnSize.Is3">DNS Plugin</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is9">
+                                    <SelectList TItem="string"
+                                                TValue="string"
+                                                Data="@_plugins"
+                                                TextField="@(item => item)"
+                                                ValueField="@(item => item)"
+                                                @bind-SelectedValue="@_orderModel.DnsChallengePlugin"
+                                                DefaultItemText="Choose Plugin"
+                                                DefaultItemHidden>
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </SelectList>
+                                    
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+
+                        <Validation HandlerType="HandlerTypes.FluentValidation">
+                            <Field Horizontal>
+                                <FieldLabel ColumnSize="ColumnSize.Is3">DNS Challenge Settings</FieldLabel>
+                                <FieldBody ColumnSize="ColumnSize.Is9">
+                                    <TextEdit Disabled Placeholder="Coming soon..." @bind-Text="@_orderModel.DnsChallengeSettings">
+                                        <Feedback>
+                                            <ValidationError />
+                                        </Feedback>
+                                    </TextEdit>
+                                </FieldBody>
+                            </Field>
+                        </Validation>
+                    }
+                </Validations>
+            </EditForm>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@CloseModal">Close</Button>
+            <Button Color="Color.Primary" Clicked="@AddOrderAsync" Loading="@_isSaveLoading">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+    [Parameter]
+    public Func<CreateAcmeOrderModel, Task>? OnSaveChangesAsync { get; set; }
+
+    [Parameter]
+    public bool ShowModal { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> ShowModalChanged { get; set; }
+
+    private EditContext? _editContext;
+    private Validations? _validations;
+    private CreateAcmeOrderModel _orderModel = new();
+    private bool _isSaveLoading;
+    private List<AcmeAccountViewModel>? _acmeAccounts;
+    private List<string> _plugins = new();
+    private string? _domainName = null;
+    private Validation _domainNameValidation = null!;
+    private Validation _commonNameValidation = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new(_orderModel);
+        _acmeAccounts = await _acmeAccountService.GetAcmeAccountsAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!ShowModal) return;
+        _orderModel = new CreateAcmeOrderModel();
+        _editContext = new(_orderModel);
+        _domainName = null;
+    }
+
+    private void OnDomainNameAdded()
+    {
+        if (string.IsNullOrEmpty(_domainName) || _domainNameValidation.Validate() != ValidationStatus.Success) return;
+        _orderModel.AdditionalDomainNames.Add(new DomainNameModel { HostName = _domainName });
+        _domainName = null;
+        _domainNameValidation.Clear();
+    }
+
+    private void OnDomainNameRemoved(string domainName)
+    {
+        var model = _orderModel.AdditionalDomainNames.FirstOrDefault(x => x.HostName == domainName);
+        if (model is not null)
+        {
+            _orderModel.AdditionalDomainNames.Remove(model);
+            _domainNameValidation.Validate();
+        }
+    }
+
+    private void ValidateDomainName(ValidatorEventArgs e)
+    {
+        var domainName = e.Value?.ToString();
+        if (string.IsNullOrEmpty(domainName))
+            e.Status = ValidationStatus.None;
+        else if (GetDomainNames().Any(x => x.HostName == domainName))
+        {
+            e.Status = ValidationStatus.Error;
+            e.ErrorText = "You must provide a unique value";
+        }
+        else
+        {
+            var isValid = _orderModel.AuthorizationChallengeType == AuthorizationChallengeType.Dns
+                ? CreateAcmeOrderValidator.BeValidDns(domainName)
+                : CreateAcmeOrderValidator.BeValidHostName(domainName);
+
+            if (isValid)
+            {
+                e.Status = ValidationStatus.Success;
+            }
+            else
+            {
+                e.Status = ValidationStatus.Error;
+                e.ErrorText = _orderModel.AuthorizationChallengeType == AuthorizationChallengeType.Dns
+                    ? "Valid Host name is required!"
+                    : "Valid Host name or IP address is required!";
+            }
+        }
+    }
+
+    private IEnumerable<DomainNameModel> GetDomainNames()
+    {
+        return _orderModel.AdditionalDomainNames.Where(x => _orderModel.AuthorizationChallengeType == AuthorizationChallengeType.Dns || !x.IsWildcard);
+    }
+
+    private void OnChallengeChanged(AuthorizationChallengeType value)
+    {
+        _orderModel.AuthorizationChallengeType = value;
+        _domainNameValidation.Validate();
+        _commonNameValidation.Validate();
+    }
+
+    private async Task CloseModal()
+    {
+        await ShowModalChanged.InvokeAsync(false);
+    }
+
+    private async Task AddOrderAsync()
+    {
+        _isSaveLoading = true;
+        if (_validations != null && await _validations.ValidateAll())
+        {
+            if (OnSaveChangesAsync != null)
+                await OnSaveChangesAsync(_orderModel);
+
+            await ShowModalChanged.InvokeAsync(false);
+        }
+
+        _isSaveLoading = false;
+    }
+}

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Certes;
 
-namespace EasyAcme.Model;
+namespace EasyAcme.Model.ViewModels;
 
 public class CreateAcmeAccountModel
 {
@@ -18,6 +18,7 @@ public class CreateAcmeAccountModel
     public string? EabKeyIdentifier { get; set; }
     public string? EabKey { get; set; }
     public KeyAlgorithm? EabKeyAlgorithm { get; set; }
+
     [MinLength(1, ErrorMessage = "ACME Account must have at least one email address.")]
     public List<string> AccountEmails { get; } = new();
 }

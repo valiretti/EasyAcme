@@ -5,6 +5,9 @@ using EasyAcme.Areas.Identity;
 using EasyAcme.DataAccess;
 using EasyAcme.HostedServices;
 using EasyAcme.Logic;
+using EasyAcme.Model.ViewModels;
+using EasyAcme.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 
@@ -16,17 +19,16 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddBlazorise(o =>
-    {
-        o.ChangeTextOnKeyPress = true;
-    })
+builder.Services.AddBlazorise()
     .AddBootstrap5Providers()
-    .AddFontAwesomeIcons();
+    .AddFontAwesomeIcons()
+    .AddFluentValidationHandler();
 
 builder.Services.AddHostedService<UserInitializationHostedService>();
+builder.Services.AddScoped<IValidator<CreateAcmeOrderModel>, CreateAcmeOrderValidator>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
-builder.Services.AddScoped<IAcmeAccountService, AcmeAccountService>();
+builder.Services.AddLogicServices();
 
 var app = builder.Build();
 

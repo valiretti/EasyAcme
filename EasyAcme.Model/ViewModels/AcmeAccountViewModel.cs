@@ -1,4 +1,4 @@
-﻿namespace EasyAcme.Model;
+﻿namespace EasyAcme.Model.ViewModels;
 
 public record AcmeAccountViewModel
 {

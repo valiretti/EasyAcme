@@ -1,6 +1,7 @@
 ﻿using Certes;
 using EasyAcme.DataAccess;
 using EasyAcme.Model;
+using EasyAcme.Model.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -102,7 +103,7 @@ public class AcmeAccountService : IAcmeAccountService
         }
     }
 
-    public async Task<bool> DeactivateAndDeleteAcmeAccount(int accountId)
+    public async Task<bool> DeactivateAndDeleteAcmeAccountAsync(int accountId)
     {
         var account = await _applicationContext.AcmeAccounts.FirstOrDefaultAsync(a => a.Id == accountId);
         if (account == null) 
