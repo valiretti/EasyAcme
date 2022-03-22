@@ -10,6 +10,7 @@
 @using Microsoft.EntityFrameworkCore.Metadata.Internal
 
 @inject IAcmeAccountService _acmeAccountService;
+@inject ICountryService _countryService;
 
 <Modal @bind-Visible="@ShowModal">
     <ModalContent Centered="true" Size="ModalSize.Large" Scrollable>
@@ -97,8 +98,14 @@
                     <Divider DividerType="DividerType.TextContent" Text="Additional Certificate Information (optional)" />
                     <Fields>
                         <Field>
-                            <FieldLabel>Country Name</FieldLabel>
-                            <TextEdit Placeholder="Enter Country Name" @bind-Text="@_orderModel.CountryName" />
+                            <FieldLabel>Country</FieldLabel>
+                            <SelectList TItem="Country"
+                                        TValue="string"
+                                        Data="@_countries"
+                                        TextField="@(item => item.Name)"
+                                        ValueField="@(item => item.Code)"
+                                        @bind-SelectedValue="@_orderModel.CountryCode"
+                                        DefaultItemText="Choose Country" />
                         </Field>
                         
                         <Field>
@@ -186,6 +193,7 @@
     private CreateAcmeOrderModel _orderModel = new();
     private bool _isSaveLoading;
     private List<AcmeAccountViewModel>? _acmeAccounts;
+    private List<Country>? _countries;
     private List<string> _plugins = new();
     private string? _domainName = null;
     private Validation _domainNameValidation = null!;
@@ -195,6 +203,7 @@
     {
         _editContext = new(_orderModel);
         _acmeAccounts = await _acmeAccountService.GetAcmeAccountsAsync();
+        _countries = await _countryService.GetCountriesAsync();
     }
 
     protected override void OnParametersSet()

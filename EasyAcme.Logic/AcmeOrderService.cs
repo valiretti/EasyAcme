@@ -44,7 +44,7 @@ public class AcmeOrderService : IAcmeOrderService
                 AcmeAccountId = acmeOrderModel.AcmeAccountId!.Value,
                 AdditionalDomainNames = string.Join(";", domainNames.Select(x => x.HostName)),
                 AuthorizationChallengeType = acmeOrderModel.AuthorizationChallengeType,
-                CountryName = acmeOrderModel.CountryName,
+                CountryCode = acmeOrderModel.CountryCode,
                 State = acmeOrderModel.State,
                 Locality = acmeOrderModel.Locality,
                 Organization = acmeOrderModel.Organization,

@@ -8,5 +8,6 @@ public static class LogicExtensions
     {
         serviceCollection.AddScoped<IAcmeAccountService, AcmeAccountService>();
         serviceCollection.AddScoped<IAcmeOrderService, AcmeOrderService>();
+        serviceCollection.AddScoped<ICountryService, CountryService>();
     }
 }

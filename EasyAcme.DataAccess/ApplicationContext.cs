@@ -21,13 +21,18 @@ public class ApplicationContext : IdentityDbContext
             .Property(a => a.EabKeyAlgorithm)
             .HasConversion<string?>();
 
-        builder.Entity<AcmeOrder>()
-            .HasOne(a => a.AcmeAccount)
+        var order = builder.Entity<AcmeOrder>();
+        order.HasOne(a => a.AcmeAccount)
             .WithMany(e => e.AcmeOrders)
             .HasForeignKey(e => e.AcmeAccountId);
-        builder.Entity<AcmeOrder>()
-            .Property(a => a.AuthorizationChallengeType)
+        order.Property(a => a.AuthorizationChallengeType)
             .HasConversion<string>();
+        order.HasOne(a => a.Country)
+            .WithMany()
+            .HasForeignKey(a => a.CountryCode);
+
+        builder.Entity<Country>()
+            .HasKey(c => c.Code);
 
         base.OnModelCreating(builder);
     }
@@ -35,4 +40,5 @@ public class ApplicationContext : IdentityDbContext
     public DbSet<AcmeAccount> AcmeAccounts { get; set; } = null!;
     public DbSet<AcmeAccountEmail> AcmeAccountEmails { get; set; } = null!;
     public DbSet<AcmeOrder> AcmeOrders { get; set; } = null!;
+    public DbSet<Country> Countries { get; set; } = null!;
 }

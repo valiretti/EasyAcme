@@ -12,7 +12,7 @@ public class CreateAcmeOrderModel
     public int? AcmeAccountId { get; set; }
 
     public List<DomainNameModel> AdditionalDomainNames { get; set; } = new();
-    public string? CountryName { get; set; }
+    public string? CountryCode { get; set; }
     public string? State { get; set; }
     public string? Locality { get; set; }
     public string? Organization { get; set; }

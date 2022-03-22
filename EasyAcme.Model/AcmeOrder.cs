@@ -13,7 +13,9 @@ public class AcmeOrder
 
     public string? AdditionalDomainNames { get; set; }
 
-    public string? CountryName { get; set; }
+    public string? CountryCode { get; set; }
+    public Country? Country { get; set; }
+
     public string? State { get; set; }
     public string? Locality { get; set; }
     public string? Organization { get; set; }
