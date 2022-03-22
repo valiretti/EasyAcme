@@ -5,6 +5,6 @@ namespace EasyAcme.Logic;
 public interface IAcmeOrderService
 {
     Task<List<AcmeOrderViewModel>> GetAcmeOrdersAsync();
-    Task<bool> CreateAcmeOrderAsync(CreateAcmeOrderModel acmeOrderModel);
-    Task<bool> DeleteAcmeOrderAsync(int orderId);
+    Task CreateAcmeOrderAsync(CreateAcmeOrderModel acmeOrderModel);
+    Task DeleteAcmeOrderAsync(int orderId);
 }

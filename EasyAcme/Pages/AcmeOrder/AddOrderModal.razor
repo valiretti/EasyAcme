@@ -262,7 +262,9 @@
     {
         _orderModel.AuthorizationChallengeType = value;
         _domainNameValidation.Validate();
-        _commonNameValidation.Validate();
+
+        if (!string.IsNullOrEmpty(_orderModel.CommonName))
+            _commonNameValidation.Validate();
     }
 
     private async Task CloseModal()

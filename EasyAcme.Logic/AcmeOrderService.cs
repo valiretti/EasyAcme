@@ -2,18 +2,15 @@
 using EasyAcme.Model;
 using EasyAcme.Model.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace EasyAcme.Logic;
 
 public class AcmeOrderService : IAcmeOrderService
 {
-    private readonly ILogger<AcmeOrderService> _logger;
     private readonly ApplicationContext _applicationContext;
 
-    public AcmeOrderService(ILogger<AcmeOrderService> logger, ApplicationContext applicationContext)
+    public AcmeOrderService(ApplicationContext applicationContext)
     {
-        _logger = logger;
         _applicationContext = applicationContext;
     }
 
@@ -27,13 +24,13 @@ public class AcmeOrderService : IAcmeOrderService
         }).ToListAsync();
     }
 
-    public Task<bool> CreateAcmeOrderAsync(CreateAcmeOrderModel acmeOrderModel)
+    public Task CreateAcmeOrderAsync(CreateAcmeOrderModel acmeOrderModel)
     {
         ArgumentNullException.ThrowIfNull(acmeOrderModel);
 
         return ExecuteAsync();
 
-        async Task<bool> ExecuteAsync()
+        async Task ExecuteAsync()
         {
             var domainNames = acmeOrderModel.AdditionalDomainNames.DistinctBy(d => d.HostName);
             if (acmeOrderModel.AuthorizationChallengeType != AuthorizationChallengeType.Dns)
@@ -58,18 +55,16 @@ public class AcmeOrderService : IAcmeOrderService
 
             await _applicationContext.AcmeOrders.AddAsync(acmeOrder);
             await _applicationContext.SaveChangesAsync();
-            return true;
         }
     }
 
-    public async Task<bool> DeleteAcmeOrderAsync(int orderId)
+    public async Task DeleteAcmeOrderAsync(int orderId)
     {
         var order = await _applicationContext.AcmeOrders.FirstOrDefaultAsync(o => o.Id == orderId);
-        if (order == null)
-            return true;
-
-        _applicationContext.AcmeOrders.Remove(order);
-        await _applicationContext.SaveChangesAsync();
-        return true;
+        if (order != null)
+        {
+            _applicationContext.AcmeOrders.Remove(order);
+            await _applicationContext.SaveChangesAsync();
+        }
     }
 }

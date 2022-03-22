@@ -35,13 +35,14 @@ else
             @for (var i = 0; i < _acmeAccounts.Count; i++)
             {
                 var index = i;
-                <TableRow @key="@index.ToString()">
+                var account = _acmeAccounts[index];
+                <TableRow @key="@account.Id">
                     <TableRowHeader>@(index + 1)</TableRowHeader>
-                    <TableRowCell>@_acmeAccounts[index].DisplayName</TableRowCell>
-                    <TableRowCell>@_acmeAccounts[index].ServerIdentifier</TableRowCell>
-                    <TableRowCell>@_acmeAccounts[index].AccountEmails</TableRowCell>
+                    <TableRowCell>@account.DisplayName</TableRowCell>
+                    <TableRowCell>@account.ServerIdentifier</TableRowCell>
+                    <TableRowCell>@account.AccountEmails</TableRowCell>
                     <TableRowCell>
-                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeAccounts[index].Id))">Delete</Button>
+                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(account.Id))">Delete</Button>
                     </TableRowCell>
                 </TableRow>
             }

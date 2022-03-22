@@ -37,14 +37,15 @@ else
             @for (var i = 0; i < _acmeOrders.Count; i++)
             {
                 var index = i;
-                <TableRow @key="@index.ToString()">
+                var order = _acmeOrders[index];
+                <TableRow @key="@order.Id">
                     <TableRowHeader>@(index + 1)</TableRowHeader>
-                    <TableRowCell>@_acmeOrders[index].CommonName</TableRowCell>
-                    <TableRowCell>@_acmeOrders[index].Status</TableRowCell>
-                    <TableRowCell>@_acmeOrders[index].CertificateFrom</TableRowCell>
-                    <TableRowCell>@_acmeOrders[index].CertificateTo</TableRowCell>
+                    <TableRowCell>@order.CommonName</TableRowCell>
+                    <TableRowCell>@order.Status</TableRowCell>
+                    <TableRowCell>@order.CertificateFrom</TableRowCell>
+                    <TableRowCell>@order.CertificateTo</TableRowCell>
                     <TableRowCell>
-                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(_acmeOrders[index].Id))">Delete</Button>
+                        <Button Color="Color.Danger" Clicked="@(async () => await ShowDeleteConfirmMessageAsync(order.Id))">Delete</Button>
                     </TableRowCell>
                 </TableRow>
             }
@@ -70,27 +71,15 @@ else
     {
         if (await _messageService.Confirm("Are you sure you want to delete the order?", "Confirmation"))
         {
-            if (!await _acmeOrderService.DeleteAcmeOrderAsync(orderId))
-            {
-                await _messageService.Error("An error has occurred during deletion the ACME order.");
-            }
-            else
-            {
-                await LoadOrdersAsync();
-            }
+            await _acmeOrderService.DeleteAcmeOrderAsync(orderId);
+            await LoadOrdersAsync();
         }
     }
 
-    private async Task OnSaveChangesAsync(CreateAcmeOrderModel a)
+    private async Task OnSaveChangesAsync(CreateAcmeOrderModel order)
     {
-        if (!await _acmeOrderService.CreateAcmeOrderAsync(a))
-        {
-            await _messageService.Error("An error has occurred during creation the ACME order.");
-        }
-        else
-        {
-            await LoadOrdersAsync();
-        }
+        await _acmeOrderService.CreateAcmeOrderAsync(order);
+        await LoadOrdersAsync();
     }
 
     private async Task LoadOrdersAsync()
