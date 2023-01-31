@@ -73,7 +73,7 @@ public class AcmeAccountService : IAcmeAccountService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "An error has occurred during creation the ACME account.");
+                _logger.LogError(e, "An error has occurred during the creation of the ACME account.");
                 return false;
             }
 
@@ -118,7 +118,7 @@ public class AcmeAccountService : IAcmeAccountService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An error has occurred during deactivating the ACME account.");
+            _logger.LogError(e, "An error has occurred during the deactivation of the ACME account.");
             return false;
         }
 

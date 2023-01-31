@@ -15,6 +15,6 @@ public class CountryService : ICountryService
 
     public Task<List<Country>> GetCountriesAsync()
     {
-        return _applicationContext.Countries.OrderBy(c => c.Name).ToListAsync();
+        return _applicationContext.Countries.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
     }
 }
