@@ -1,5 +1,6 @@
 using Blazorise;
 using Blazorise.Bootstrap5;
+using Blazorise.FluentValidation;
 using Blazorise.Icons.FontAwesome;
 using EasyAcme.Areas.Identity;
 using EasyAcme.DataAccess;
@@ -22,7 +23,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddBlazorise()
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons()
-    .AddFluentValidationHandler();
+    .AddBlazoriseFluentValidation();
 
 builder.Services.AddHostedService<UserInitializationHostedService>();
 builder.Services.AddScoped<IValidator<CreateAcmeOrderModel>, CreateAcmeOrderValidator>();

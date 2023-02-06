@@ -20,8 +20,8 @@
         </ModalHeader>
         <ModalBody>
             <EditForm EditContext="@_editContext">
-                <Validations @ref="_validations" Mode="ValidationMode.Auto" EditContext="@_editContext" ValidateOnLoad="false">
-                    <Validation HandlerType="HandlerTypes.FluentValidation">
+                <Validations @ref="_validations" Mode="ValidationMode.Auto" EditContext="@_editContext" ValidateOnLoad="false" HandlerType="typeof(FluentValidationHandler)">
+                    <Validation>
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.Is3">ACME Account</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.Is9">
@@ -50,7 +50,7 @@
                         </FieldBody>
                     </Field>
 
-                    <Validation HandlerType="HandlerTypes.FluentValidation" @ref="@_commonNameValidation">
+                    <Validation @ref="@_commonNameValidation">
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.Is3">Common Name</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.Is9">
@@ -134,7 +134,7 @@
                     {
                         <Divider DividerType="DividerType.Solid" />
 
-                        <Validation HandlerType="HandlerTypes.FluentValidation">
+                        <Validation>
                             <Field Horizontal>
                                 <FieldLabel ColumnSize="ColumnSize.Is3">DNS Plugin</FieldLabel>
                                 <FieldBody ColumnSize="ColumnSize.Is9">
@@ -155,7 +155,7 @@
                             </Field>
                         </Validation>
 
-                        <Validation HandlerType="HandlerTypes.FluentValidation">
+                        <Validation>
                             <Field Horizontal>
                                 <FieldLabel ColumnSize="ColumnSize.Is3">DNS Challenge Settings</FieldLabel>
                                 <FieldBody ColumnSize="ColumnSize.Is9">
