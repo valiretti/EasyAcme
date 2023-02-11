@@ -8,6 +8,9 @@ using EasyAcme.HostedServices;
 using EasyAcme.Logic;
 using EasyAcme.Model.ViewModels;
 using EasyAcme.Validators;
+using Elsa;
+using Elsa.Persistence.EntityFramework.Core.Extensions;
+using Elsa.Persistence.EntityFramework.Sqlite;
 using FluentValidation;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +27,15 @@ builder.Services.AddBlazorise()
     .AddBootstrap5Providers()
     .AddFontAwesomeIcons()
     .AddBlazoriseFluentValidation();
+
+// Elsa services.
+var elsaSection = builder.Configuration.GetSection("Elsa");
+builder.Services
+    .AddElsa(elsa => elsa
+        .UseEntityFrameworkPersistence(ef => ef.UseSqlite(DataAccessExtensions.GetElsaSqLiteConnectionString()), true)
+        .AddHttpActivities(elsaSection.GetSection("Server").Bind)
+        .AddQuartzTemporalActivities());
+builder.Services.AddElsaApiEndpoints();
 
 builder.Services.AddHostedService<UserInitializationHostedService>();
 builder.Services.AddScoped<IValidator<CreateAcmeOrderModel>, CreateAcmeOrderValidator>();

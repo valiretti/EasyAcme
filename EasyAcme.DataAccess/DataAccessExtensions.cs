@@ -35,5 +35,20 @@ namespace EasyAcme.DataAccess
 
             return connectionStringBuilder.ToString();
         }
+
+        public static string GetElsaSqLiteConnectionString()
+        {
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            var path = Path.Join(Environment.GetFolderPath(folder), "EasyAcme");
+            Directory.CreateDirectory(path);
+            path = Path.Join(path, "Elsa.db");
+            var connectionStringBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = path,
+                Cache = SqliteCacheMode.Shared
+            };
+
+            return connectionStringBuilder.ToString();
+        }
     }
 }
