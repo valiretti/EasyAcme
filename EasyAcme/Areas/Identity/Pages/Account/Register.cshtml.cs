@@ -29,9 +29,9 @@ namespace EasyAcme.Areas.Identity.Pages.Account
             return Task.CompletedTask;
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public Task<IActionResult> OnPostAsync()
         {
-            return BadRequest();
+            return Task.FromResult<IActionResult>(BadRequest());
         }
     }
 }
